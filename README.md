@@ -24,3 +24,10 @@ keywords:
 - NSPConfiguration.proxyConfiguration
 - GET mask-api.icloud.com/v2_3/fetchConfigFile
 - x-mask-subscription-token (JWT), ES384
+
+process:
+- disable SIP (system integrity protection) - boot into recovery mode
+  - csrutil disable
+- disable AMFI - apple mobile file integrity
+- ps aux | grep AppleIDSettings
+- xpcspy -r -p $PID from the above
