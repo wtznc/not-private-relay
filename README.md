@@ -16,9 +16,11 @@ tools:
     - ```/usr/local/bin/frida ```
 - frida-trace
 - wireshark
-- [frida script](https://andydavies.me/blog/2019/12/12/capturing-and-decrypting-https-traffic-from-ios-apps/) - Apple uses certificate pinning to prevent the sniffing of encrypted network traffic. I'm using this script to extract those secrets and import them into Wireshark, so I can see all requests in plain text.
-- xpcspy
-- ghidra
+- [frida script](https://andydavies.me/blog/2019/12/12/capturing-and-decrypting-https-traffic-from-ios-apps/) 
+  - Apple uses certificate pinning to prevent the sniffing of encrypted network traffic. I'm using this script to extract those secrets and import them into Wireshark, so I can see all requests in plain text.
+- [ghidra](https://github.com/NationalSecurityAgency/ghidra)
+  - install JDK & JRE (NSA suggests [openjdk](https://adoptium.net/temurin/releases/))
+- [jtool2](https://github.com/excitedplus1s/jtool2)
 
 keywords:
 - AppleIDSettings
@@ -51,14 +53,14 @@ $: xpc_connection_send_message_with_reply(connection=0x6000030bafd0, message=0x6
 $: 0x1c5f7b464 NetworkServiceProxy!-[NSPServerClient getPrivacyProxyUserTierWithCompletionHandler:]
 ```
 
-- The `networkserviceproxy (/usr/libexec/networkserviceproxy)` binary looks interesting:
+- hmmm `networkserviceproxy (/usr/libexec/networkserviceproxy)` :
 ```console
 wtznc@github ~ ps aux | grep networkserviceproxy
 
 wtznc 684   0.0  0.1 426972944  24304   ??  S     7:33PM   0:07.17 /usr/libexec/networkserviceproxy
 ```
 - copy bin and inspect
-```
+```console
 wtznc@github ~ file networkserviceproxy
 
 networkserviceproxy: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64e]
@@ -66,4 +68,8 @@ networkserviceproxy (for architecture x86_64):	Mach-O 64-bit executable x86_64
 networkserviceproxy (for architecture arm64e):	Mach-O 64-bit executable arm64e
 ```
 
-- ghidra time:
+- ghidra time (in progress):
+  - bin networkserviceproxy imports PrivateFrameworks/NetworkServiceProxy.framework
+- private frameworks cannot be directly extracted, however there's a way to analyse its content through dyld cache
+- apple since Ventura keeps em here:  
+```/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e```
