@@ -41,4 +41,29 @@ process:
 - ```ps aux | grep AppleIDSettings```
 - ```sudo frida -p $PID```
 
-```first success 🏆``` frida can attach to system protected processes
+#### `first success 🏆` frida can attach to system protected processes
+
+- trace calls: 
+```sudo frida-trace -p 17107 -i "xpc_connection*" -o trace.log```
+- interesting logged calls:
+```console
+$: xpc_connection_send_message_with_reply(connection=0x6000030bafd0, message=0x600002bbc960, targetq=0x6000021d0b80, handler=0x16bbd18b8)
+$: 0x1c5f7b464 NetworkServiceProxy!-[NSPServerClient getPrivacyProxyUserTierWithCompletionHandler:]
+```
+
+- The `networkserviceproxy (/usr/libexec/networkserviceproxy)` binary looks interesting:
+```console
+wtznc@github ~ ps aux | grep networkserviceproxy
+
+wtznc 684   0.0  0.1 426972944  24304   ??  S     7:33PM   0:07.17 /usr/libexec/networkserviceproxy
+```
+- copy bin and inspect
+```
+wtznc@github ~ file networkserviceproxy
+
+networkserviceproxy: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64e]
+networkserviceproxy (for architecture x86_64):	Mach-O 64-bit executable x86_64
+networkserviceproxy (for architecture arm64e):	Mach-O 64-bit executable arm64e
+```
+
+- ghidra time:
