@@ -15,12 +15,10 @@ tools:
     - ```make && make install```
     - ```/usr/local/bin/frida ```
 - frida-trace
-- wireshark
-- [frida script](https://andydavies.me/blog/2019/12/12/capturing-and-decrypting-https-traffic-from-ios-apps/) 
-  - Apple uses certificate pinning to prevent the sniffing of encrypted network traffic. I'm using this script to extract those secrets and import them into Wireshark, so I can see all requests in plain text.
+- mitmproxy
+  - Apple uses certificate pinning to prevent the sniffing of encrypted network traffic. To bypass this, we need to install a custom certificate on the device.
 - [ghidra](https://github.com/NationalSecurityAgency/ghidra)
   - install JDK & JRE (NSA suggests [openjdk](https://adoptium.net/temurin/releases/))
-- [jtool2](https://github.com/excitedplus1s/jtool2)
 
 keywords:
 - AppleIDSettings
@@ -30,7 +28,7 @@ keywords:
 - /System/Library/PrivateFrameworks/NetworkServiceProxy.framework
 - NSPConfiguration class
 - NSPConfiguration.proxyConfiguration
-- GET mask-api.icloud.com/v2_3/fetchConfigFile
+- GET mask-api.icloud.com/v4_4/fetchConfigFile
 - x-mask-subscription-token (JWT), ES384
 
 process:
@@ -113,10 +111,16 @@ sudo frida -l inspect.js -n networkserviceproxy 2>&1 | tee output.log
 
 
 - mitmproxy instead of frida with a script to intercept HTTPS traffic
-- this is huge
+- holy moly this is huge
 ```console
-jwt:
+jwt (es384):
+
 header:
+{
+  "vid": 2,
+  "alg": "ES384",
+  "kid": "ulxxxxxAT-2SxxxxxEe4TDxxxxxjpAAxxxxxZvdi5Tc"
+}
 
 payload (masked on purpose):
 {
@@ -129,3 +133,6 @@ payload (masked on purpose):
   "iat": 1740080582,
   "jti": "f3xxxx26-0xx4-4xxd-9xx7-61xxxxxxabd9"
 }
+```
+
+#### moar to come...
