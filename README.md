@@ -73,3 +73,41 @@ networkserviceproxy (for architecture arm64e):	Mach-O 64-bit executable arm64e
 - private frameworks cannot be directly extracted, however there's a way to analyse its content through dyld cache
 - apple since Ventura keeps em here:  
 ```/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e```
+  - actually we dont need to analyse the whole dyld cache, ghidra can load the cache when we open the binary (settings, check load dyld cache)
+- found NSPConfiguration class in Ghidra, inspecting further
+- there's a method `proxyConfiguration` which returns a dictionary with keys 🔑 lets print its values
+  - in order to do that, we need to attach frida to the process and call the method
+- frida script to inspect the method:
+```js
+// inspect NSPConfiguration proxyConfiguration return value
+// usage: sudo frida -l inspect.js -n networkserviceproxy 2>&1 | tee output.log
+if (ObjC.available) {
+    var NSPConfiguration = ObjC.classes.NSPConfiguration;
+    Interceptor.attach(NSPConfiguration["- proxyConfiguration"].implementation, {
+        onLeave: function (retval) {
+            try {
+                var result = new ObjC.Object(retval);
+                console.log("=== proxyConfiguration return value ===");
+                console.log(result.toString());
+
+                if (result.$className === "NSDictionary") {
+                    var allKeys = result.allKeys();
+                    for (var i = 0; i < allKeys.count(); i++) {
+                        var key = allKeys.objectAtIndex_(i);
+                        var val = result.objectForKey_(key);
+                        console.log(key.toString() + " : " + val.toString());
+                    }
+                }
+            } catch (e) {
+                console.log("Error reading retval: " + e);
+            }
+        }
+    });
+}
+```
+- execute the script:
+```console
+sudo frida -l inspect.js -n networkserviceproxy 2>&1 | tee output.log
+```
+#### `second success 🏆` frida can inspect the return value of NSPConfiguration.proxyConfiguration
+
