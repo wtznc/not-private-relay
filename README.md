@@ -1,4 +1,4 @@
-#  not-private-relay
+#  not-so-private-relay
 
 task:
 - Dig into Apple’s NetworkServiceProxy frameworks, analyze Mach-O binaries, and intercept pinned HTTPS traffic with Frida - reveal how iCloud Private Relay flows under the hood.
@@ -111,3 +111,21 @@ sudo frida -l inspect.js -n networkserviceproxy 2>&1 | tee output.log
 ```
 #### `second success 🏆` frida can inspect the return value of NSPConfiguration.proxyConfiguration
 
+
+- mitmproxy instead of frida with a script to intercept HTTPS traffic
+- this is huge
+```console
+jwt:
+header:
+
+payload (masked on purpose):
+{
+  "accountId": "17xxxxxx53",
+  "iss": "apple.cloud.subscriptions.p68",
+  "limit": 2,
+  "exp": 1740166982,
+  "featureKey": "networking.privacy.subscriber",
+  "deviceId": "00xx8x03-00xxxxxx3Exxx01E",
+  "iat": 1740080582,
+  "jti": "f3xxxx26-0xx4-4xxd-9xx7-61xxxxxxabd9"
+}
