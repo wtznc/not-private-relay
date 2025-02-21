@@ -1,42 +1,24 @@
 #  not-so-private-relay
 
-## Task
-
-Investigate Apple's iCloud Private Relay by:
+Investigate [Apple's iCloud Private Relay](https://www.apple.com/privacy/docs/iCloud_Private_Relay_Overview_Dec2021.PDF) by:
 
   - **Reverse Engineering:** Digging into Apple’s NetworkServiceProxy frameworks and analyzing Mach-O binaries.
   - **Traffic Interception:** Intercepting pinned HTTPS traffic with Frida to understand how iCloud Private Relay operates under the hood.
 
-## Research
-
-  - **iCloud Private Relay Whitepaper:** [Apple iCloud Private Relay Overview (Dec 2021)](https://www.apple.com/privacy/docs/iCloud_Private_Relay_Overview_Dec2021.PDF)
-
 ## Tools
 
-  - [Frida](https://www.google.com/url?sa=E&source=gmail&q=https://frida.re/): Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers.
-  - `frida-trace`:  Frida's tool for tracing function calls.
-  - [mitmproxy](https://www.google.com/url?sa=E&source=gmail&q=https://mitmproxy.org/): Interactive HTTPS proxy.
+  - [Frida](https://github.com/frida/frida): Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers.
+  - [frida-trace](https://frida.re/docs/frida-trace/):  Frida's tool for tracing function calls.
+  - [mitmproxy](https://github.com/mitmproxy/mitmproxy): An interactive TLS-capable intercepting HTTP proxy for penetration testers and software developers.
   - [Ghidra](https://github.com/NationalSecurityAgency/ghidra): Software Reverse Engineering framework.
       - **JDK & JRE:** Required for Ghidra. NSA recommends [OpenJDK Temurin](https://adoptium.net/temurin/releases/).
   - JWT Decoder: For analyzing JSON Web Tokens.
 
 **Note:** Apple utilizes certificate pinning to secure network traffic. To bypass this for interception, installing a custom certificate on the target device is necessary.
 
-## Keywords
-
-  - `AppleIDSettings`
-  - `com.apple.networkserviceproxy`
-  - `NSPServerCommandType`
-  - `/usr/libexec/networkserviceproxy` (Mach-O binary)
-  - `/System/Library/PrivateFrameworks/NetworkServiceProxy.framework`
-  - `NSPConfiguration` class
-  - `NSPConfiguration.proxyConfiguration`
-  - `GET mask-api.icloud.com/v4_4/fetchConfigFile`
-  - `x-mask-subscription-token` (JWT, ES384)
 
 ## Process
 
-This section outlines the steps taken to analyze iCloud Private Relay.
 
 ### 1\. Disable System Integrity Protection (SIP)
 
@@ -79,6 +61,7 @@ This step enables debugging for system extensions which might be relevant to Net
 Building Frida from source and code signing it is crucial for attaching to protected processes.
 
   - **Generate a Trusted Code-Signing Certificate:** Follow instructions to [generate a code-signing certificate for GDB on macOS](https://sourceware.org/gdb/wiki/PermissionsDarwin). Ensure `gdb_codesign` (or your chosen certificate name) appears in Keychain Access as a valid certificate.
+    - **Automated certificate generation:** Download and run [this](https://github.com/conda-forge/gdb-feedstock/blob/main/recipe/macos-codesign/macos-setup-codesign.sh) script from the conda-forge gdb-feedstock repository.
 
   - **Set Environment Variable and Build Frida:**
 
@@ -102,7 +85,13 @@ Building Frida from source and code signing it is crucial for attaching to prote
     sudo frida -p <PID>          # Replace <PID> with the actual Process ID
     ```
 
-#### `first success 🏆` Frida can now attach to system protected processes\!
+---
+
+### Tools Setup Complete
+
+Frida can now attach to system-protected processes.
+
+---
 
 ### 5\. Trace XPC Calls with Frida-trace
 
@@ -201,7 +190,12 @@ Use Frida to dynamically inspect the return value of the `proxyConfiguration` me
     sudo frida -l inspect.js -n networkserviceproxy 2>&1 | tee output.log
     ```
 
-#### `second success 🏆` Frida can successfully inspect the return value of `NSPConfiguration.proxyConfiguration`\!
+---
+
+### End of Reverse Engineering Phase
+
+
+---
 
 ### 8\. Intercept HTTPS Traffic with mitmproxy
 
