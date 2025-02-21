@@ -85,6 +85,22 @@ Building Frida from source and code signing it is crucial for attaching to prote
     sudo frida -p <PID>          # Replace <PID> with the actual Process ID
     ```
 
+### 5\. Generate a Custom Certificate for mitmproxy
+
+- **Install mitmproxy:** Install mitmproxy using Homebrew:
+
+    ```bash
+    brew install mitmproxy
+    ```
+- **Run mitmproxy in local mode:** Start mitmproxy in local mode:
+
+    ```bash
+    mitmproxy --mode local
+    ```
+- **Change network settings:** Change your device's network settings to use the IP address of the machine running mitmproxy as the proxy server.
+
+- **Generate a Certificate:** Open `http://mitm.it` in a browser and download the certificate for your platform.
+- **Install according to your platform:** Install the certificate on your device to intercept HTTPS traffic.
 ---
 
 ### Tools Setup Complete
